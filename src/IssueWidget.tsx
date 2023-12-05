@@ -1,37 +1,58 @@
 // IssueWidget.tsx
-import React from 'react';
+import React, { useState } from 'react';
 
 interface IssueWidgetProps {
-  markers: { issue: string; description: string }[];
+  onAddIssue: (issue: string, description: string) => void;
+  addedIssues: { issue: string; description: string }[];
 }
 
-const IssueWidget: React.FC<IssueWidgetProps> = ({ markers }) => {
-  const countByIssue: { [key: string]: number } = {};
-  const descriptionsByIssue: { [key: string]: string[] } = {};
+const IssueEntryForm: React.FC<{ onAddIssue: (issue: string, description: string) => void }> = ({ onAddIssue }) => {
+  const [issue, setIssue] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
 
-  // Count issues and collect descriptions
-  markers.forEach((marker) => {
-    const { issue, description } = marker;
-    countByIssue[issue] = (countByIssue[issue] || 0) + 1;
-    descriptionsByIssue[issue] = descriptionsByIssue[issue] || [];
-    descriptionsByIssue[issue].push(description);
-  });
+  const handleAddIssue = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAddIssue(issue, description);
+    setIssue('');
+    setDescription('');
+  };
 
   return (
+    <form onSubmit={handleAddIssue}>
+      <label>
+        Issue:
+        <input type="text" value={issue} onChange={(e) => setIssue(e.target.value)} />
+      </label>
+      <label>
+        Description:
+        <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
+      </label>
+      <button type="submit">Add Issue</button>
+    </form>
+  );
+};
+
+const AddedIssuesList: React.FC<{ addedIssues: { issue: string; description: string }[] }> = ({ addedIssues }) => {
+  return (
     <div>
-      <h2>Issue Widget</h2>
+      <h3>Added Issues:</h3>
       <ul>
-        {Object.keys(countByIssue).map((issue) => (
-          <li key={issue}>
-            <strong>{issue}:</strong> {countByIssue[issue]} issues
-            <ul>
-              {descriptionsByIssue[issue].map((description, index) => (
-                <li key={index}>{description}</li>
-              ))}
-            </ul>
+        {addedIssues.map((issue, index) => (
+          <li key={index}>
+            <strong>{issue.issue}:</strong> {issue.description}
           </li>
         ))}
       </ul>
+    </div>
+  );
+};
+
+const IssueWidget: React.FC<IssueWidgetProps> = ({ onAddIssue, addedIssues }) => {
+  return (
+    <div>
+      <h2>Issue Widget</h2>
+      <IssueEntryForm onAddIssue={onAddIssue} />
+      <AddedIssuesList addedIssues={addedIssues} />
     </div>
   );
 };
